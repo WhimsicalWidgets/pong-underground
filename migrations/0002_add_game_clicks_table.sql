@@ -1,0 +1,7 @@
+-- Migration number: 0002 	 2025-08-02T00:00:00.000Z
+CREATE TABLE IF NOT EXISTS game_clicks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    user_agent TEXT,
+    ip_address TEXT
+);

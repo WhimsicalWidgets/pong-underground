@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import { tasksRouter } from "./endpoints/tasks/router";
 import { ContentfulStatusCode } from "hono/utils/http-status";
 import { DummyEndpoint } from "./endpoints/dummyEndpoint";
+import { GameClickEndpoint } from "./endpoints/gameClick";
+import { GameStatsEndpoint } from "./endpoints/gameStats";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -14,7 +16,7 @@ const initialHtml = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ping Pong Underground</title>
+  <title>Ping Pong Underground - TEST UPDATE</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -78,14 +80,46 @@ const initialHtml = `<!DOCTYPE html>
     .game-active .ui-overlay {
       display: none;
     }
+
+    .score-display {
+      position: fixed;
+      top: 20px;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 14px;
+      z-index: 1000;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+      background: rgba(0,0,0,0.7);
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 2px solid currentColor;
+    }
+
+    .score-left {
+      left: 20px;
+      color: #ff0000;
+      border-color: #ff0000;
+    }
+
+    .score-right {
+      right: 20px;
+      color: #00ff00;
+      border-color: #00ff00;
+    }
   </style>
 </head>
 
-<body class="bg-gray-900 min-h-screen flex items-center justify-center p-4 garage-bg bg-gray-800">
-  <!-- Pong game canvas background -->
-  <canvas id="pongCanvas" width="800" height="400"></canvas>
+<body class="bg-gray-900 min-h-screen garage-bg bg-gray-800">
+  <!-- Score displays - positioned absolutely on the page -->
+  <div id="forPongScore" style="position: fixed; top: 20px; left: 20px; z-index: 99999; color: #00ff00; font-size: 12px; font-family: 'Press Start 2P', monospace;">For ping pong: 0</div>
+  <div id="notForPongScore" style="position: fixed; top: 20px; right: 20px; z-index: 99999; color: #00ff00; font-size: 12px; font-family: 'Press Start 2P', monospace;">Not for pong: ??</div>
   
-  <div class="ui-overlay relative max-w-4xl w-full">
+  <!-- Main content container -->
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <!-- Pong game canvas background -->
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    
+    <div class="ui-overlay relative max-w-4xl w-full">
     <!-- Main container -->
     <div class="bg-black bg-opacity-80 p-8 rounded-lg pixel-border shadow-2xl overflow-hidden">
       <!-- Street Fighter style header -->
@@ -118,6 +152,7 @@ const initialHtml = `<!DOCTYPE html>
     <div class="street-font text-gray-400 text-xs text-center mt-4">
       <p>CASUAL GAMES • GOOD VIBES • FRIENDLY COMPETITION</p>
       <p class="mt-1">LOCATION: THE GARAGE • TIME: WHENEVER</p>
+    </div>
     </div>
   </div>
 
@@ -287,15 +322,50 @@ const initialHtml = `<!DOCTYPE html>
     document.addEventListener('DOMContentLoaded', function () {
       const yesBtn = document.getElementById('yesBtn');
       const fightSound = document.getElementById('fightSound');
+      const forPongScore = document.getElementById('forPongScore');
+      const notForPongScore = document.getElementById('notForPongScore');
       
       // Initialize background pong game
       const backgroundGame = new PingPong('pongCanvas');
 
-      yesBtn.addEventListener('click', function () {
+      // Function to update scores
+      async function updateScores() {
+        try {
+          const response = await fetch('/game/stats');
+          const data = await response.json();
+          forPongScore.textContent = \`For ping pong: \${data.forPong}\`;
+          notForPongScore.textContent = \`Not for pong: \${data.notForPong}\`;
+        } catch (error) {
+          console.error('Failed to fetch scores:', error);
+        }
+      }
+
+      // Update scores on page load
+      updateScores();
+
+      yesBtn.addEventListener('click', async function () {
         fightSound.play();
         yesBtn.innerHTML = '<i class="fas fa-table-tennis-paddle-ball mr-2"></i> GAME ON!';
         yesBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
         yesBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+        
+        // Record the click in the database
+        try {
+          await fetch('/game/click', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              timestamp: new Date().toISOString()
+            })
+          });
+        } catch (error) {
+          console.error('Failed to record click:', error);
+        }
+        
+        // Update scores after recording the click
+        updateScores();
         
         // Transition to full game mode
         document.body.classList.add('game-active');
@@ -354,6 +424,8 @@ openapi.route("/tasks", tasksRouter);
 
 // Register other endpoints
 openapi.post("/dummy/:slug", DummyEndpoint);
+openapi.post("/game/click", GameClickEndpoint);
+openapi.get("/game/stats", GameStatsEndpoint);
 
 // Export the Hono app
 export default app;

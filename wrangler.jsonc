@@ -1,0 +1,16 @@
+{
+  "compatibility_date": "2025-04-01",
+  "main": "src/index.ts",
+  "name": "pong-underground",
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pong-underground",
+      "database_id": "7ac1c005-99fd-4953-a210-e26457219853"
+    }
+  ]
+}

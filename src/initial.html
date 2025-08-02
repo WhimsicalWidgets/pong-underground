@@ -1,14 +1,4 @@
-import { ApiException, fromHono } from "chanfana";
-import { Hono } from "hono";
-import { tasksRouter } from "./endpoints/tasks/router";
-import { ContentfulStatusCode } from "hono/utils/http-status";
-import { DummyEndpoint } from "./endpoints/dummyEndpoint";
-
-// Start a Hono app
-const app = new Hono<{ Bindings: Env }>();
-
-// Read the HTML content
-const initialHtml = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -44,6 +34,29 @@ const initialHtml = `<!DOCTYPE html>
       }
     }
 
+    .ping-pong-ball {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: white;
+      border-radius: 50%;
+      box-shadow: 0 0 10px white;
+      animation: bounce 3s infinite;
+    }
+
+    @keyframes bounce {
+      0% {
+        transform: translateX(0);
+      }
+
+      50% {
+        transform: translateX(calc(100vw - 40px));
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
 
     .button-press {
       transition: all 0.1s;
@@ -86,6 +99,9 @@ const initialHtml = `<!DOCTYPE html>
   <canvas id="pongCanvas" width="800" height="400"></canvas>
   
   <div class="ui-overlay relative max-w-4xl w-full">
+    <!-- Ping pong ball animation -->
+    <div class="ping-pong-ball" style="top: 50%; left: 0;"></div>
+
     <!-- Main container -->
     <div class="bg-black bg-opacity-80 p-8 rounded-lg pixel-border shadow-2xl overflow-hidden">
       <!-- Street Fighter style header -->
@@ -159,16 +175,9 @@ const initialHtml = `<!DOCTYPE html>
       }
 
       setupEventListeners() {
-        document.addEventListener('mousemove', (e) => {
+        this.canvas.addEventListener('mousemove', (e) => {
           const rect = this.canvas.getBoundingClientRect();
-          const relativeY = e.clientY - rect.top;
-          
-          // Scale mouse position to canvas height
-          this.mouseY = (relativeY / rect.height) * this.canvas.height;
-          
-          // Keep within bounds
-          if (this.mouseY < 0) this.mouseY = 0;
-          if (this.mouseY > this.canvas.height) this.mouseY = this.canvas.height;
+          this.mouseY = e.clientY - rect.top;
         });
       }
 
@@ -304,56 +313,4 @@ const initialHtml = `<!DOCTYPE html>
   </script>
 </body>
 
-</html>`;
-
-// Serve the ping pong game at root
-app.get("/", (c) => {
-  return c.html(initialHtml);
-});
-
-// Also serve at /initial for direct access
-app.get("/initial", (c) => {
-  return c.html(initialHtml);
-});
-
-app.onError((err, c) => {
-  if (err instanceof ApiException) {
-    // If it's a Chanfana ApiException, let Chanfana handle the response
-    return c.json(
-      { success: false, errors: err.buildResponse() },
-      err.status as ContentfulStatusCode,
-    );
-  }
-
-  console.error("Global error handler caught:", err); // Log the error if it's not known
-
-  // For other errors, return a generic 500 response
-  return c.json(
-    {
-      success: false,
-      errors: [{ code: 7000, message: "Internal Server Error" }],
-    },
-    500,
-  );
-});
-
-// Setup OpenAPI registry
-const openapi = fromHono(app, {
-  docs_url: "/docs",
-  schema: {
-    info: {
-      title: "Ping Pong Underground API",
-      version: "2.0.0",
-      description: "Backend API for the Ping Pong Underground game.",
-    },
-  },
-});
-
-// Register Tasks Sub router
-openapi.route("/tasks", tasksRouter);
-
-// Register other endpoints
-openapi.post("/dummy/:slug", DummyEndpoint);
-
-// Export the Hono app
-export default app;
+</html>

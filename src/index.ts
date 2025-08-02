@@ -1,10 +1,10 @@
 import { ApiException, fromHono } from "chanfana";
-import { Hono } from "hono";
-import { tasksRouter } from "./endpoints/tasks/router";
+import { Hono } from 'hono';
 import { ContentfulStatusCode } from "hono/utils/http-status";
 import { DummyEndpoint } from "./endpoints/dummyEndpoint";
 import { GameClickEndpoint } from "./endpoints/gameClick";
 import { GameStatsEndpoint } from "./endpoints/gameStats";
+import { tasksRouter } from './endpoints/tasks/router';
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -113,12 +113,12 @@ const initialHtml = `<!DOCTYPE html>
   <!-- Score displays - positioned absolutely on the page -->
   <div id="forPongScore" style="position: fixed; top: 10px; left: 10px; z-index: 99999; color: #00ff00; font-size: 10px; font-family: 'Press Start 2P', monospace;">For ping pong: 0</div>
   <div id="notForPongScore" style="position: fixed; top: 10px; right: 10px; z-index: 99999; color: #00ff00; font-size: 10px; font-family: 'Press Start 2P', monospace;">Not for pong: ??</div>
-  
+
   <!-- Main content container -->
   <div class="min-h-screen flex items-center justify-center p-4">
     <!-- Pong game canvas background -->
     <canvas id="pongCanvas" width="800" height="400"></canvas>
-    
+
     <div class="ui-overlay relative max-w-4xl w-full">
     <!-- Main container -->
     <div class="bg-black bg-opacity-80 p-8 rounded-lg pixel-border shadow-2xl overflow-hidden">
@@ -136,7 +136,7 @@ const initialHtml = `<!DOCTYPE html>
         <div class="flex justify-center">
           <button id="yesBtn"
             class="button-press street-font bg-green-500 hover:bg-green-600 text-white px-4 sm:px-8 py-3 sm:py-4 rounded-lg text-sm sm:text-lg md:text-xl transform transition-all duration-200 hover:scale-105">
-            <i class="fas fa-table-tennis-paddle-ball mr-2"></i> LET'S GET ONE!
+            <i class="fas fa-table-tennis-paddle-ball mr-2"></i> Let's buy a ping pong table!
           </button>
         </div>
       </div>
@@ -217,10 +217,10 @@ const initialHtml = `<!DOCTYPE html>
       updatePaddlePosition(clientY) {
         const rect = this.canvas.getBoundingClientRect();
         const relativeY = clientY - rect.top;
-        
+
         // Scale position to canvas height
         this.mouseY = (relativeY / rect.height) * this.canvas.height;
-        
+
         // Keep within bounds
         if (this.mouseY < 0) this.mouseY = 0;
         if (this.mouseY > this.canvas.height) this.mouseY = this.canvas.height;
@@ -343,7 +343,7 @@ const initialHtml = `<!DOCTYPE html>
       const fightSound = document.getElementById('fightSound');
       const forPongScore = document.getElementById('forPongScore');
       const notForPongScore = document.getElementById('notForPongScore');
-      
+
       // Initialize background pong game
       const backgroundGame = new PingPong('pongCanvas');
 
@@ -367,7 +367,7 @@ const initialHtml = `<!DOCTYPE html>
         yesBtn.innerHTML = '<i class="fas fa-table-tennis-paddle-ball mr-2"></i> GAME ON!';
         yesBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
         yesBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
-        
+
         // Record the click in the database
         try {
           await fetch('/game/click', {
@@ -382,10 +382,10 @@ const initialHtml = `<!DOCTYPE html>
         } catch (error) {
           console.error('Failed to record click:', error);
         }
-        
+
         // Update scores after recording the click
         updateScores();
-        
+
         // Transition to full game mode
         document.body.classList.add('game-active');
       });

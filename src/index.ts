@@ -111,8 +111,8 @@ const initialHtml = `<!DOCTYPE html>
 
 <body class="bg-gray-900 min-h-screen garage-bg bg-gray-800">
   <!-- Score displays - positioned absolutely on the page -->
-  <div id="forPongScore" style="position: fixed; top: 20px; left: 20px; z-index: 99999; color: #00ff00; font-size: 12px; font-family: 'Press Start 2P', monospace;">For ping pong: 0</div>
-  <div id="notForPongScore" style="position: fixed; top: 20px; right: 20px; z-index: 99999; color: #00ff00; font-size: 12px; font-family: 'Press Start 2P', monospace;">Not for pong: ??</div>
+  <div id="forPongScore" style="position: fixed; top: 10px; left: 10px; z-index: 99999; color: #00ff00; font-size: 10px; font-family: 'Press Start 2P', monospace;">For ping pong: 0</div>
+  <div id="notForPongScore" style="position: fixed; top: 10px; right: 10px; z-index: 99999; color: #00ff00; font-size: 10px; font-family: 'Press Start 2P', monospace;">Not for pong: ??</div>
   
   <!-- Main content container -->
   <div class="min-h-screen flex items-center justify-center p-4">
@@ -124,18 +124,18 @@ const initialHtml = `<!DOCTYPE html>
     <div class="bg-black bg-opacity-80 p-8 rounded-lg pixel-border shadow-2xl overflow-hidden">
       <!-- Street Fighter style header -->
       <div class="text-center mb-8">
-        <h1 class="street-font text-4xl md:text-6xl text-red-500 mb-4 glow">PING PONG UNDERGROUND</h1>
-        <p class="street-font text-yellow-300 text-sm md:text-base">ATTENTION TOWER CITIZENS</p>
+        <h1 class="street-font text-2xl sm:text-4xl md:text-6xl text-red-500 mb-4 glow leading-tight">PING PONG UNDERGROUND</h1>
+        <p class="street-font text-yellow-300 text-xs sm:text-sm md:text-base">ATTENTION TOWER CITIZENS</p>
       </div>
 
 
       <!-- Main CTA -->
       <div class="text-center mb-8">
-        <h2 class="street-font text-xl md:text-3xl text-white mb-6">WANNA PLAY SOME PING PONG?</h2>
+        <h2 class="street-font text-sm sm:text-xl md:text-3xl text-white mb-6">WANNA PLAY SOME PING PONG?</h2>
 
         <div class="flex justify-center">
           <button id="yesBtn"
-            class="button-press street-font bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-lg text-lg md:text-xl transform transition-all duration-200 hover:scale-105">
+            class="button-press street-font bg-green-500 hover:bg-green-600 text-white px-4 sm:px-8 py-3 sm:py-4 rounded-lg text-sm sm:text-lg md:text-xl transform transition-all duration-200 hover:scale-105">
             <i class="fas fa-table-tennis-paddle-ball mr-2"></i> LET'S GET ONE!
           </button>
         </div>
@@ -194,17 +194,36 @@ const initialHtml = `<!DOCTYPE html>
       }
 
       setupEventListeners() {
+        // Mouse events for desktop
         document.addEventListener('mousemove', (e) => {
-          const rect = this.canvas.getBoundingClientRect();
-          const relativeY = e.clientY - rect.top;
-          
-          // Scale mouse position to canvas height
-          this.mouseY = (relativeY / rect.height) * this.canvas.height;
-          
-          // Keep within bounds
-          if (this.mouseY < 0) this.mouseY = 0;
-          if (this.mouseY > this.canvas.height) this.mouseY = this.canvas.height;
+          this.updatePaddlePosition(e.clientY);
         });
+
+        // Touch events for mobile
+        document.addEventListener('touchmove', (e) => {
+          e.preventDefault(); // Prevent scrolling
+          if (e.touches.length > 0) {
+            this.updatePaddlePosition(e.touches[0].clientY);
+          }
+        }, { passive: false });
+
+        document.addEventListener('touchstart', (e) => {
+          if (e.touches.length > 0) {
+            this.updatePaddlePosition(e.touches[0].clientY);
+          }
+        });
+      }
+
+      updatePaddlePosition(clientY) {
+        const rect = this.canvas.getBoundingClientRect();
+        const relativeY = clientY - rect.top;
+        
+        // Scale position to canvas height
+        this.mouseY = (relativeY / rect.height) * this.canvas.height;
+        
+        // Keep within bounds
+        if (this.mouseY < 0) this.mouseY = 0;
+        if (this.mouseY > this.canvas.height) this.mouseY = this.canvas.height;
       }
 
       update() {
